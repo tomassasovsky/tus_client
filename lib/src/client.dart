@@ -6,7 +6,6 @@ import 'store.dart';
 
 import 'package:cross_file/cross_file.dart' show XFile;
 import 'package:http/http.dart' as http;
-import "package:path/path.dart" as p;
 
 /// This class is used for creating or resuming uploads.
 class TusClient {
@@ -241,7 +240,9 @@ class TusClient {
     final meta = Map<String, String>.from(metadata ?? {});
 
     if (!meta.containsKey("filename")) {
-      meta["filename"] = p.basename(file.path);
+      // Add the filename to the metadata from the whole directory path.
+      //I.e: /home/user/file.txt -> file.txt
+      meta["filename"] = file.path.split('/').last;
     }
 
     return meta.entries

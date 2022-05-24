@@ -60,7 +60,6 @@ You need to add to your `pubspec.yaml`:
 
 ```dart
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 
 //creates temporal directory to store the upload progress
 final tempDir = await getTemporaryDirectory();
