@@ -8,7 +8,7 @@
 A tus client in pure dart. [Resumable uploads using tus protocol](https://tus.io/)
 Forked from [tus_client](https://pub.dev/packages/tus_client)
 
-> **tus** is a protocol based on HTTP for *resumable file uploads*. Resumable
+> **tus** is a protocol based on HTTP for _resumable file uploads_. Resumable
 > means that an upload can be interrupted at any moment and can be resumed without
 > re-uploading the previous data again. An interruption may happen willingly, if
 > the user wants to pause, or by accident in case of a network issue or server
@@ -47,7 +47,7 @@ await client.upload(
         // Prints the uploaded file URL
         print(client.uploadUrl.toString());
     },
-    onProgress: (double progress, Duration estimate) {
+    onProgress: (double progress, Duration estimate, TusClient client) {
         print("Progress: $progress, Estimated time: ${estimate.inSeconds}");
     },
 );
@@ -57,11 +57,6 @@ await client.upload(
 
 This is only supported on Flutter Android, iOS, desktop and web.
 You need to add to your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  tus_client_dart: ^2.0.2
-```
 
 ```dart
 import 'package:path_provider/path_provider.dart';
@@ -136,7 +131,7 @@ await client.upload(
     onComplete: () {
         print("Complete!");
     },
-    onProgress: (double progress, Duration estimate) {
+    onProgress: (double progress, Duration estimate, TusClient client) {
         print("Progress: $progress, Estimated time: ${estimate.inSeconds}");
     },
 );
@@ -148,6 +143,6 @@ For an example of usage in a Flutter app (using file picker) see: [/example](htt
 
 ## Maintainers
 
-* [Nazareno Cavazzon](https://github.com/NazarenoCavazzon)
-* [Jorge Rincon](https://github.com/jorger5)
-* [Tomás Sasovsky](https://github.com/tomassasovsky)
+- [Nazareno Cavazzon](https://github.com/NazarenoCavazzon)
+- [Jorge Rincon](https://github.com/jorger5)
+- [Tomás Sasovsky](https://github.com/tomassasovsky)
