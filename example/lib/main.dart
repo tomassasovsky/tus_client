@@ -91,7 +91,6 @@ class _UploadPageState extends State<UploadPage> {
                               // Create a client
                               print("Create a client");
                               _client = TusClient(
-                                Uri.parse("https://tusd.tusdemo.net/files/"),
                                 _file!,
                                 store: TusMemoryStore(),
                               );
@@ -109,6 +108,8 @@ class _UploadPageState extends State<UploadPage> {
                                     _estimate = estimate;
                                   });
                                 },
+                                uri: Uri.parse(
+                                    "https://tusd.tusdemo.net/files/"),
                               );
                             },
                       child: Text("Upload"),

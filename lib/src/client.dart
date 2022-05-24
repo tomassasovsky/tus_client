@@ -15,17 +15,17 @@ class TusClient {
   static final tusVersion = "1.0.0";
 
   /// The tus server Uri
-  final Uri url;
+  Uri? url;
 
   /// Storage used to save and retrieve upload URLs by its fingerprint.
   final TusStore? store;
 
   final XFile file;
 
-  final Map<String, String>? metadata;
+  Map<String, String>? metadata;
 
   /// Any additional headers
-  final Map<String, String>? headers;
+  Map<String, String>? headers;
 
   /// The maximum payload size in bytes when uploading the file in chunks (512KB)
   final int maxChunkSize;
@@ -45,11 +45,8 @@ class TusClient {
   Future<http.StreamedResponse?>? _chunkPatchFuture;
 
   TusClient(
-    this.url,
     this.file, {
     this.store,
-    this.headers,
-    this.metadata = const {},
     this.maxChunkSize = 512 * 1024,
   }) {
     _fingerprint = generateFingerprint() ?? "";
@@ -83,7 +80,14 @@ class TusClient {
         "Upload-Length": "$_fileSize",
       });
 
-    final response = await client.post(url, headers: createHeaders);
+    final _url = url;
+
+    if (_url == null) {
+      throw ProtocolException('400, Error in request, URL is incorrect');
+    }
+
+    final response = await client.post(_url, headers: createHeaders);
+
     if (!(response.statusCode >= 200 && response.statusCode < 300) &&
         response.statusCode != 404) {
       throw ProtocolException(
@@ -119,10 +123,15 @@ class TusClient {
 
   /// Start or resume an upload in chunks of [maxChunkSize] throwing
   /// [ProtocolException] on server error
-  upload({
-    Function(double, Duration, TusClient)? onProgress,
-    Function()? onComplete,
-  }) async {
+  upload(
+      {Function(double, Duration, TusClient)? onProgress,
+      Function()? onComplete,
+      required Uri uri,
+      Map<String, String>? metadata = const {},
+      Map<String, String>? headers = const {},
+      required}) async {
+    setUploadData(uri, headers, metadata);
+
     if (!await resume()) {
       await create();
     }
@@ -217,6 +226,16 @@ class TusClient {
     return file.path.replaceAll(RegExp(r"\W+"), '.');
   }
 
+  void setUploadData(
+    Uri url,
+    Map<String, String>? headers,
+    Map<String, String>? metadata,
+  ) {
+    this.url = url;
+    this.headers = headers;
+    this.metadata = metadata;
+  }
+
   /// Override this to customize creating 'Upload-Metadata'
   String generateMetadata() {
     final meta = Map<String, String>.from(metadata ?? {});
@@ -289,10 +308,10 @@ class TusClient {
     }
     Uri uploadUrl = Uri.parse(urlStr);
     if (uploadUrl.host.isEmpty) {
-      uploadUrl = uploadUrl.replace(host: url.host, port: url.port);
+      uploadUrl = uploadUrl.replace(host: url?.host, port: url?.port);
     }
     if (uploadUrl.scheme.isEmpty) {
-      uploadUrl = uploadUrl.replace(scheme: url.scheme);
+      uploadUrl = uploadUrl.replace(scheme: url?.scheme);
     }
     return uploadUrl;
   }

@@ -1,3 +1,7 @@
+## [2.2.1] - Use http client again
+
+- Changed TusClient initialization, headers and metadata are passed now through upload function
+
 ## [2.2.0+1] - Use http client again
 
 - Updated dependencies
