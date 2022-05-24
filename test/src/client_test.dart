@@ -19,11 +19,8 @@ class MockTusClient extends TusClient {
     Map<String, String>? metadata,
     int maxChunkSize = 512 * 1024,
   }) : super(
-          url,
           file,
           store: store,
-          headers: headers,
-          metadata: metadata,
           maxChunkSize: maxChunkSize,
         ) {
     httpClient = MockClient();
@@ -231,7 +228,12 @@ main() {
     bool success = false;
     double? progress;
     await client.upload(
-        onComplete: () => success = true, onProgress: (p, e, c) => progress = p);
+      onComplete: () => success = true,
+      onProgress: (p, e, c) => progress = p,
+      uri: Uri(),
+      headers: {},
+      metadata: {},
+    );
 
     expect(success, isTrue);
     expect(progress, equals(100));
@@ -274,6 +276,9 @@ main() {
     await client.upload(
       onComplete: () => success = true,
       onProgress: (p, e, c) => progress = p,
+      uri: Uri(),
+      headers: {},
+      metadata: {},
     );
 
     expect(success, isTrue);
@@ -317,7 +322,12 @@ main() {
     bool success = false;
     double? progress;
     await client.upload(
-        onComplete: () => success = true, onProgress: (p, e, c) => progress = p);
+      onComplete: () => success = true,
+      onProgress: (p, e, c) => progress = p,
+      uri: Uri(),
+      headers: {},
+      metadata: {},
+    );
 
     expect(success, isFalse);
     expect(progress, equals(50));
@@ -343,7 +353,12 @@ main() {
     bool success = false;
     double? progress;
     await client.upload(
-        onComplete: () => success = true, onProgress: (p, e, c) => progress = p);
+      onComplete: () => success = true,
+      onProgress: (p, e, c) => progress = p,
+      uri: Uri(),
+      headers: {},
+      metadata: {},
+    );
 
     expect(success, isTrue);
     expect(progress, equals(100));
@@ -358,7 +373,11 @@ main() {
         .thenAnswer((_) async => http.Response("500 Server Error", 500));
 
     expectLater(
-        () => client.upload(),
+        () => client.upload(
+              uri: Uri(),
+              headers: {},
+              metadata: {},
+            ),
         throwsA(predicate((e) =>
             e is ProtocolException &&
             e.message ==
@@ -377,7 +396,11 @@ main() {
             http.Response("", 204, headers: {"upload-offset": ""}));
 
     expectLater(
-        () => client.upload(),
+        () => client.upload(
+              uri: Uri(),
+              headers: {},
+              metadata: {},
+            ),
         throwsA(predicate((e) =>
             e is ProtocolException &&
             e.message ==
@@ -398,7 +421,11 @@ main() {
     )).thenAnswer((_) async => http.Response("500 Server Error", 500));
 
     expectLater(
-        () => client.upload(),
+        () => client.upload(
+              uri: Uri(),
+              headers: {},
+              metadata: {},
+            ),
         throwsA(predicate((e) =>
             e is ProtocolException &&
             e.message ==
@@ -419,7 +446,11 @@ main() {
     )).thenAnswer((_) async => http.Response("", 204));
 
     expectLater(
-        () => client.upload(),
+        () => client.upload(
+              uri: Uri(),
+              headers: {},
+              metadata: {},
+            ),
         throwsA(predicate((e) =>
             e is ProtocolException &&
             e.message ==
@@ -441,7 +472,11 @@ main() {
         (_) async => http.Response("", 204, headers: {"upload-offset": "50"}));
 
     expectLater(
-        () => client.upload(),
+        () => client.upload(
+              uri: Uri(),
+              headers: {},
+              metadata: {},
+            ),
         throwsA(predicate((e) =>
             e is ProtocolException &&
             e.message ==
