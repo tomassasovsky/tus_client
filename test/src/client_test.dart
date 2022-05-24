@@ -231,8 +231,6 @@ main() {
       onComplete: () => success = true,
       onProgress: (p, e, c) => progress = p,
       uri: Uri(),
-      headers: {},
-      metadata: {},
     );
 
     expect(success, isTrue);
@@ -277,8 +275,6 @@ main() {
       onComplete: () => success = true,
       onProgress: (p, e, c) => progress = p,
       uri: Uri(),
-      headers: {},
-      metadata: {},
     );
 
     expect(success, isTrue);
@@ -325,8 +321,6 @@ main() {
       onComplete: () => success = true,
       onProgress: (p, e, c) => progress = p,
       uri: Uri(),
-      headers: {},
-      metadata: {},
     );
 
     expect(success, isFalse);
@@ -356,8 +350,6 @@ main() {
       onComplete: () => success = true,
       onProgress: (p, e, c) => progress = p,
       uri: Uri(),
-      headers: {},
-      metadata: {},
     );
 
     expect(success, isTrue);
@@ -375,8 +367,6 @@ main() {
     expectLater(
         () => client.upload(
               uri: Uri(),
-              headers: {},
-              metadata: {},
             ),
         throwsA(predicate((e) =>
             e is ProtocolException &&
@@ -398,8 +388,6 @@ main() {
     expectLater(
         () => client.upload(
               uri: Uri(),
-              headers: {},
-              metadata: {},
             ),
         throwsA(predicate((e) =>
             e is ProtocolException &&
@@ -423,8 +411,6 @@ main() {
     expectLater(
         () => client.upload(
               uri: Uri(),
-              headers: {},
-              metadata: {},
             ),
         throwsA(predicate((e) =>
             e is ProtocolException &&
@@ -448,8 +434,6 @@ main() {
     expectLater(
         () => client.upload(
               uri: Uri(),
-              headers: {},
-              metadata: {},
             ),
         throwsA(predicate((e) =>
             e is ProtocolException &&
@@ -474,8 +458,6 @@ main() {
     expectLater(
         () => client.upload(
               uri: Uri(),
-              headers: {},
-              metadata: {},
             ),
         throwsA(predicate((e) =>
             e is ProtocolException &&

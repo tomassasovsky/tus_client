@@ -120,8 +120,8 @@ class TusClient {
       {Function(double, Duration, TusClient)? onProgress,
       Function()? onComplete,
       required Uri uri,
-      required Map<String, String>? metadata,
-      required Map<String, String>? headers,
+      Map<String, String>? metadata = const {},
+      Map<String, String>? headers = const {},
       required}) async {
     setUploadData(uri, headers, metadata);
 
@@ -296,6 +296,10 @@ class TusClient {
   }
 
   Uri _parseUrl(String urlStr) {
+    if (url == null) {
+      throw ProtocolException('400, Error in request, URL is incorrect');
+    }
+
     if (urlStr.contains(",")) {
       urlStr = urlStr.substring(0, urlStr.indexOf(","));
     }
