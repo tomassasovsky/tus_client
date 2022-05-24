@@ -231,7 +231,7 @@ main() {
     bool success = false;
     double? progress;
     await client.upload(
-        onComplete: () => success = true, onProgress: (p, e) => progress = p);
+        onComplete: () => success = true, onProgress: (p, e, c) => progress = p);
 
     expect(success, isTrue);
     expect(progress, equals(100));
@@ -273,7 +273,7 @@ main() {
     double? progress;
     await client.upload(
       onComplete: () => success = true,
-      onProgress: (p, e) => progress = p,
+      onProgress: (p, e, c) => progress = p,
     );
 
     expect(success, isTrue);
@@ -317,7 +317,7 @@ main() {
     bool success = false;
     double? progress;
     await client.upload(
-        onComplete: () => success = true, onProgress: (p, e) => progress = p);
+        onComplete: () => success = true, onProgress: (p, e, c) => progress = p);
 
     expect(success, isFalse);
     expect(progress, equals(50));
@@ -343,7 +343,7 @@ main() {
     bool success = false;
     double? progress;
     await client.upload(
-        onComplete: () => success = true, onProgress: (p, e) => progress = p);
+        onComplete: () => success = true, onProgress: (p, e, c) => progress = p);
 
     expect(success, isTrue);
     expect(progress, equals(100));

@@ -120,7 +120,7 @@ class TusClient {
   /// Start or resume an upload in chunks of [maxChunkSize] throwing
   /// [ProtocolException] on server error
   upload({
-    Function(double, Duration)? onProgress,
+    Function(double, Duration, TusClient)? onProgress,
     Function()? onComplete,
   }) async {
     if (!await resume()) {
@@ -169,7 +169,7 @@ class TusClient {
             );
 
             final progress = totalSent / totalBytes * 100;
-            onProgress((progress).clamp(0, 100), estimate);
+            onProgress((progress).clamp(0, 100), estimate, this);
           }
         },
       );

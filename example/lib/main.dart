@@ -102,7 +102,7 @@ class _UploadPageState extends State<UploadPage> {
                                   print("Completed!");
                                   setState(() => _fileUrl = _client!.uploadUrl);
                                 },
-                                onProgress: (progress, estimate) {
+                                onProgress: (progress, estimate, _) {
                                   print("Progress: $progress");
                                   setState(() {
                                     _progress = progress;

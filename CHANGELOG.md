@@ -1,3 +1,8 @@
+## [2.2.0+1] - Use http client again
+
+- Updated dependencies
+- Now passing reference to the current TusClient in the onProgress function
+
 ## [2.2.0] - Use http client again
 
 - We don't use Dio anymore
