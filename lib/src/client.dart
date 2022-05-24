@@ -80,10 +80,14 @@ class TusClient {
         "Upload-Length": "$_fileSize",
       });
 
-    if (url == null) {
+    final _url = url;
+
+    if (_url == null) {
       throw ProtocolException('400, Error in request, URL is incorrect');
     }
-    final response = await client.post(url ?? Uri(), headers: createHeaders);
+
+    final response = await client.post(_url, headers: createHeaders);
+
     if (!(response.statusCode >= 200 && response.statusCode < 300) &&
         response.statusCode != 404) {
       throw ProtocolException(
