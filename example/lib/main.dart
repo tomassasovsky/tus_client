@@ -110,6 +110,14 @@ class _UploadPageState extends State<UploadPage> {
                                 },
                                 uri: Uri.parse(
                                     "https://tusd.tusdemo.net/files/"),
+                                metadata: {
+                                  'testMetaData': 'testMetaData',
+                                  'testMetaData2': 'testMetaData2',
+                                },
+                                headers: {
+                                  'testHeaders': 'testHeaders',
+                                  'testHeaders2': 'testHeaders2',
+                                },
                               );
                             },
                       child: Text("Upload"),

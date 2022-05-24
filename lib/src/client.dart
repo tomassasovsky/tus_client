@@ -49,7 +49,6 @@ class TusClient {
     this.maxChunkSize = 512 * 1024,
   }) {
     _fingerprint = generateFingerprint() ?? "";
-    _uploadMetadata = generateMetadata();
   }
 
   /// Whether the client supports resuming
@@ -122,13 +121,13 @@ class TusClient {
 
   /// Start or resume an upload in chunks of [maxChunkSize] throwing
   /// [ProtocolException] on server error
-  upload(
-      {Function(double, Duration, TusClient)? onProgress,
-      Function()? onComplete,
-      required Uri uri,
-      Map<String, String>? metadata = const {},
-      Map<String, String>? headers = const {},
-      required}) async {
+  upload({
+    Function(double, Duration, TusClient)? onProgress,
+    Function()? onComplete,
+    required Uri uri,
+    Map<String, String>? metadata = const {},
+    Map<String, String>? headers = const {},
+  }) async {
     setUploadData(uri, headers, metadata);
 
     if (!await resume()) {
@@ -233,6 +232,7 @@ class TusClient {
     this.url = url;
     this.headers = headers;
     this.metadata = metadata;
+    _uploadMetadata = generateMetadata();
   }
 
   /// Override this to customize creating 'Upload-Metadata'

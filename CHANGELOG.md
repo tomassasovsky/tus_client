@@ -1,3 +1,7 @@
+## [2.2.1+2] - Fixed metadata and better example
+
+- Fixed generateMetadata() function and improved example.
+
 ## [2.2.1+1] - Deleted path dependency
 
 - Deleted path package as dependency
