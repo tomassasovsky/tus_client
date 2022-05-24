@@ -80,6 +80,9 @@ class TusClient {
         "Upload-Length": "$_fileSize",
       });
 
+    if (url == null) {
+      throw ProtocolException('400, Error in request, URL is incorrect');
+    }
     final response = await client.post(url ?? Uri(), headers: createHeaders);
     if (!(response.statusCode >= 200 && response.statusCode < 300) &&
         response.statusCode != 404) {
@@ -296,10 +299,6 @@ class TusClient {
   }
 
   Uri _parseUrl(String urlStr) {
-    if (url == null) {
-      throw ProtocolException('400, Error in request, URL is incorrect');
-    }
-
     if (urlStr.contains(",")) {
       urlStr = urlStr.substring(0, urlStr.indexOf(","));
     }
