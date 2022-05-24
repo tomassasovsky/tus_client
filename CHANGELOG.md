@@ -1,4 +1,8 @@
-## [2.2.1] - Use http client again
+## [2.2.1+1] - Deleted path dependency
+
+- Deleted path package as dependency
+
+## [2.2.1] - Change TusClient upload function
 
 - Changed TusClient initialization, headers and metadata are passed now through upload function
 
