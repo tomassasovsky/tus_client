@@ -229,7 +229,11 @@ main() {
     double? progress;
     await client.upload(
       onComplete: () => success = true,
-      onProgress: (p, e, c) => progress = p,
+      onProgress: (
+        p,
+        e,
+      ) =>
+          progress = p,
       uri: Uri(),
     );
 
@@ -273,7 +277,11 @@ main() {
     double? progress;
     await client.upload(
       onComplete: () => success = true,
-      onProgress: (p, e, c) => progress = p,
+      onProgress: (
+        p,
+        e,
+      ) =>
+          progress = p,
       uri: Uri(),
     );
 
@@ -319,7 +327,11 @@ main() {
     double? progress;
     await client.upload(
       onComplete: () => success = true,
-      onProgress: (p, e, c) => progress = p,
+      onProgress: (
+        p,
+        e,
+      ) =>
+          progress = p,
       uri: Uri(),
     );
 
@@ -348,7 +360,11 @@ main() {
     double? progress;
     await client.upload(
       onComplete: () => success = true,
-      onProgress: (p, e, c) => progress = p,
+      onProgress: (
+        p,
+        e,
+      ) =>
+          progress = p,
       uri: Uri(),
     );
 

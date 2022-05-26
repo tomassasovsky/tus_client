@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert' show base64, utf8;
+import 'dart:io';
 import 'dart:math' show min;
 import 'dart:typed_data' show Uint8List, BytesBuilder;
 import 'exceptions.dart';
@@ -41,8 +43,6 @@ class TusClient {
 
   bool _pauseUpload = false;
 
-  Future<http.StreamedResponse?>? _chunkPatchFuture;
-
   TusClient(
     this.file, {
     this.store,
@@ -67,62 +67,72 @@ class TusClient {
   http.Client getHttpClient() => http.Client();
 
   /// Create a new [upload] throwing [ProtocolException] on server error
-  create() async {
-    _fileSize = await file.length();
+  Future<void> create() async {
+    try {
+      _fileSize = await file.length();
 
-    final client = getHttpClient();
-    final createHeaders = Map<String, String>.from(headers ?? {})
-      ..addAll({
-        "Tus-Resumable": tusVersion,
-        "Upload-Metadata": _uploadMetadata ?? "",
-        "Upload-Length": "$_fileSize",
-      });
+      final client = getHttpClient();
+      final createHeaders = Map<String, String>.from(headers ?? {})
+        ..addAll({
+          "Tus-Resumable": tusVersion,
+          "Upload-Metadata": _uploadMetadata ?? "",
+          "Upload-Length": "$_fileSize",
+        });
 
-    final _url = url;
+      final _url = url;
 
-    if (_url == null) {
-      throw ProtocolException('400, Error in request, URL is incorrect');
+      if (_url == null) {
+        throw ProtocolException(400, 'Error in request, URL is incorrect');
+      }
+
+      final response = await client.post(_url, headers: createHeaders);
+
+      if (!(response.statusCode >= 200 && response.statusCode < 300) &&
+          response.statusCode != 404) {
+        throw ProtocolException(
+            response.statusCode, "Unexpected Error while creating upload");
+      }
+
+      String urlStr = response.headers["location"] ?? "";
+      if (urlStr.isEmpty) {
+        throw ProtocolException(
+            400, "missing upload Uri in response for creating upload");
+      }
+
+      _uploadUrl = _parseUrl(urlStr);
+      store?.set(_fingerprint, _uploadUrl as Uri);
+    } on FileSystemException {
+      throw Exception('Cannot find file to upload');
     }
-
-    final response = await client.post(_url, headers: createHeaders);
-
-    if (!(response.statusCode >= 200 && response.statusCode < 300) &&
-        response.statusCode != 404) {
-      throw ProtocolException(
-          "unexpected status code (${response.statusCode}) while creating upload");
-    }
-
-    String urlStr = response.headers["location"] ?? "";
-    if (urlStr.isEmpty) {
-      throw ProtocolException(
-          "missing upload Uri in response for creating upload");
-    }
-
-    _uploadUrl = _parseUrl(urlStr);
-    store?.set(_fingerprint, _uploadUrl as Uri);
   }
 
   /// Check if possible to resume an already started upload
   Future<bool> resume() async {
-    _fileSize = await file.length();
-    _pauseUpload = false;
+    try {
+      _fileSize = await file.length();
+      _pauseUpload = false;
 
-    if (!resumingEnabled) {
+      if (!resumingEnabled) {
+        return false;
+      }
+
+      _uploadUrl = await store?.get(_fingerprint);
+
+      if (_uploadUrl == null) {
+        return false;
+      }
+      return true;
+    } on FileSystemException {
+      throw Exception('Cannot find file to upload');
+    } catch (e) {
       return false;
     }
-
-    _uploadUrl = await store?.get(_fingerprint);
-
-    if (_uploadUrl == null) {
-      return false;
-    }
-    return true;
   }
 
   /// Start or resume an upload in chunks of [maxChunkSize] throwing
   /// [ProtocolException] on server error
-  upload({
-    Function(double, Duration, TusClient)? onProgress,
+  Future<void> upload({
+    Function(double, Duration)? onProgress,
     Function(TusClient)? onStart,
     Function()? onComplete,
     required Uri uri,
@@ -152,6 +162,9 @@ class TusClient {
     }
 
     while (!_pauseUpload && _offset < totalBytes) {
+      if (!File(file.path).existsSync()) {
+        throw Exception("Cannot find file ${file.path.split('/').last}");
+      }
       final uploadHeaders = Map<String, String>.from(headers ?? {})
         ..addAll({
           "Tus-Resumable": tusVersion,
@@ -162,10 +175,11 @@ class TusClient {
         ..headers.addAll(uploadHeaders)
         ..bodyBytes = await _getData();
       final response = await client.send(request);
+
       response.stream.listen(
         (newBytes) {},
         onDone: () {
-          if (onProgress != null) {
+          if (onProgress != null && !_pauseUpload) {
             // Total byte sent
             final totalSent = _offset + maxChunkSize;
 
@@ -181,7 +195,7 @@ class TusClient {
             );
 
             final progress = totalSent / totalBytes * 100;
-            onProgress((progress).clamp(0, 100), estimate, this);
+            onProgress((progress).clamp(0, 100), estimate);
           }
         },
       );
@@ -189,17 +203,17 @@ class TusClient {
       // check if correctly uploaded
       if (!(response.statusCode >= 200 && response.statusCode < 300)) {
         throw ProtocolException(
-            "unexpected status code (${response.statusCode}) while uploading chunk");
+            response.statusCode, "Error while uploadingfile");
       }
 
       int? serverOffset = _parseOffset(response.headers["upload-offset"]);
       if (serverOffset == null) {
-        throw ProtocolException(
-            "response to PATCH request contains no or invalid Upload-Offset header");
+        throw ProtocolException(400,
+            "Response to PATCH request contains no or invalid Upload-Offset header");
       }
       if (_offset != serverOffset) {
-        throw ProtocolException(
-            "response contains different Upload-Offset value ($serverOffset) than expected ($_offset)");
+        throw ProtocolException(400,
+            "Response contains different Upload-Offset value ($serverOffset) than expected ($_offset)");
       }
 
       if (_offset == totalBytes) {
@@ -212,11 +226,18 @@ class TusClient {
   }
 
   /// Pause the current upload
-  pause() {
+  void pause() async {
     _pauseUpload = true;
-    _chunkPatchFuture?.timeout(Duration.zero, onTimeout: () {
-      return null;
-    });
+  }
+
+  Future<bool> cancelUpload() async {
+    try {
+      pause();
+      await store?.remove(_fingerprint);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Actions to be performed after a successful upload
@@ -269,13 +290,13 @@ class TusClient {
 
     if (!(response.statusCode >= 200 && response.statusCode < 300)) {
       throw ProtocolException(
-          "unexpected status code (${response.statusCode}) while resuming upload");
+          response.statusCode, "Unexpected error while resuming upload");
     }
 
     int? serverOffset = _parseOffset(response.headers["upload-offset"]);
     if (serverOffset == null) {
       throw ProtocolException(
-          "missing upload offset in response for resuming upload");
+          400, "missing upload offset in response for resuming upload");
     }
     return serverOffset;
   }

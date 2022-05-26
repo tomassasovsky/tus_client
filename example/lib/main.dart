@@ -107,14 +107,12 @@ class _UploadPageState extends State<UploadPage> {
 
                               print("Starting upload");
                               await _client!.upload(
-                                onStart: (TusClient client) =>
-                                    print(client.headers),
                                 onComplete: () async {
                                   print("Completed!");
                                   tempDirectory.deleteSync(recursive: true);
                                   setState(() => _fileUrl = _client!.uploadUrl);
                                 },
-                                onProgress: (progress, estimate, _) {
+                                onProgress: (progress, estimate) {
                                   print("Progress: $progress");
                                   setState(() {
                                     _progress = progress;
@@ -177,6 +175,20 @@ class _UploadPageState extends State<UploadPage> {
                 ),
               ],
             ),
+            if (_progress > 0)
+              ElevatedButton(
+                onPressed: () async {
+                  final result = await _client!.cancelUpload();
+
+                  if (result) {
+                    setState(() {
+                      _progress = 0;
+                      _estimate = Duration();
+                    });
+                  }
+                },
+                child: Text("Cancel"),
+              ),
             GestureDetector(
               onTap: _progress != 100
                   ? null

@@ -77,8 +77,13 @@ class TusFileStore implements TusStore {
   @override
   Future<void> remove(String fingerprint) async {
     final file = await _getFile(fingerprint);
+
     if (file.existsSync()) {
-      await file.delete();
+      file.deleteSync();
+    }
+
+    if (directory.existsSync()) {
+      directory.deleteSync(recursive: true);
     }
   }
 

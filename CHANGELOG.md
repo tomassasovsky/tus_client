@@ -1,3 +1,12 @@
+## [2.2.2] - Change TusClient upload function
+
+- Added onStart function with TusClient as argument
+- Added cancelUpload function.
+- Deleted unused variables
+- Correct typing of functions
+- Changed ProtocolException model to separate code from message
+- Added error handling on requests
+
 ## [2.2.1+3] - Added onStart function and using TusFileStore
 
 - Added onStart function after initiating upload.
