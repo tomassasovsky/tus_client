@@ -16,6 +16,7 @@ dependencies:
   cross_file: ^0.3.3
   file_picker: ^4.0.0
   url_launcher: ^6.0.9
+  path_provider: ^2.0.9
 
 dev_dependencies:
   flutter_test:

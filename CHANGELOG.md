@@ -1,3 +1,8 @@
+## [2.2.1+3] - Added onStart function and using TusFileStore
+
+- Added onStart function after initiating upload.
+- Using TusFileStore for saving video locally (fixes resume-upload function)
+
 ## [2.2.1+2] - Fixed metadata and better example
 
 - Fixed generateMetadata() function and improved example.

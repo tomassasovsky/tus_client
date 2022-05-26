@@ -123,6 +123,7 @@ class TusClient {
   /// [ProtocolException] on server error
   upload({
     Function(double, Duration, TusClient)? onProgress,
+    Function(TusClient)? onStart,
     Function()? onComplete,
     required Uri uri,
     Map<String, String>? metadata = const {},
@@ -145,6 +146,10 @@ class TusClient {
 
     // start upload
     final client = getHttpClient();
+
+    if (onStart != null) {
+      onStart(this);
+    }
 
     while (!_pauseUpload && _offset < totalBytes) {
       final uploadHeaders = Map<String, String>.from(headers ?? {})

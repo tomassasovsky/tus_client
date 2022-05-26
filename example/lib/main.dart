@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:cross_file/cross_file.dart' show XFile;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:tus_client_dart/tus_client_dart.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -88,17 +91,27 @@ class _UploadPageState extends State<UploadPage> {
                       onPressed: _file == null
                           ? null
                           : () async {
+                              final tempDir = await getTemporaryDirectory();
+                              final tempDirectory = Directory(
+                                  '${tempDir.path}/${_file?.name}_uploads');
+                              if (!tempDirectory.existsSync()) {
+                                tempDirectory.createSync(recursive: true);
+                              }
+
                               // Create a client
                               print("Create a client");
                               _client = TusClient(
                                 _file!,
-                                store: TusMemoryStore(),
+                                store: TusFileStore(tempDirectory),
                               );
 
                               print("Starting upload");
                               await _client!.upload(
+                                onStart: (TusClient client) =>
+                                    print(client.headers),
                                 onComplete: () async {
                                   print("Completed!");
+                                  tempDirectory.deleteSync(recursive: true);
                                   setState(() => _fileUrl = _client!.uploadUrl);
                                 },
                                 onProgress: (progress, estimate, _) {
