@@ -2,9 +2,9 @@
 /// status code or missing/invalid headers.
 class ProtocolException implements Exception {
   final String message;
-  final int code;
+  final int? code;
 
-  ProtocolException(this.code, this.message);
+  ProtocolException(this.message, [this.code]);
 
   String toString() => "ProtocolException: ($code) $message";
 }

@@ -80,7 +80,7 @@ main() {
         (_) async =>
             http.Response("", 201, headers: {"location": uploadLocation}));
 
-    await client.create();
+    await client.createUpload();
 
     expect(client.uploadUrl.toString(), equals(uploadLocation));
     expect(
@@ -99,7 +99,7 @@ main() {
                   "//example.com/tus/1ae64b4f-bd7a-410b-893d-3614a4bd68a6"
             }));
 
-    await client.create();
+    await client.createUpload();
 
     expect(client.uploadUrl.toString(), equals(uploadLocation));
     expect(
@@ -117,7 +117,7 @@ main() {
               "location": "/tus/1ae64b4f-bd7a-410b-893d-3614a4bd68a6"
             }));
 
-    await client.create();
+    await client.createUpload();
 
     expect(client.uploadUrl.toString(), equals(uploadLocation));
     expect(
@@ -135,7 +135,7 @@ main() {
               "location": "/tus/1ae64b4f-bd7a-410b-893d-3614a4bd68a6"
             }));
 
-    await client.create();
+    await client.createUpload();
 
     expect(client.uploadUrl.toString(), equals(uploadLocationWithPort));
     expect(
@@ -152,7 +152,7 @@ main() {
         (_) async => http.Response("", 201,
             headers: {"location": "$uploadLocation,$uploadLocation"}));
 
-    await client.create();
+    await client.createUpload();
 
     expect(client.uploadUrl.toString(), equals(uploadLocation));
     expect(
@@ -169,20 +169,20 @@ main() {
         (_) async => http.Response("", 201, headers: {"location": ""}));
 
     expectLater(
-        () => client.create(),
+        () => client.createUpload(),
         throwsA(predicate((e) =>
             e is ProtocolException &&
             e.message ==
                 'missing upload Uri in response for creating upload')));
   });
 
-  test('client_test.TusClient.create().failure.server.error', () async {
+  test('client_test.TusClient.createUpload().failure.server.error', () async {
     final client = MockTusClient(url, file);
     when(client.httpClient?.post(url, headers: anyNamed('headers')))
         .thenAnswer((_) async => http.Response("500 Server Error", 500));
 
     expectLater(
-        () => client.create(),
+        () => client.createUpload(),
         throwsA(predicate((e) =>
             e is ProtocolException &&
             e.message ==
@@ -194,7 +194,7 @@ main() {
     final client = MockTusClient(url, file, store: store);
     store.set(client.fingerprint, Uri.parse(uploadLocation));
 
-    await client.resume();
+    await client.isResumable();
 
     expect(client.uploadUrl.toString(), equals(uploadLocation));
   });
@@ -202,13 +202,13 @@ main() {
   test('client_test.TusClient.resume().failure.no.store', () async {
     final client = MockTusClient(url, file);
 
-    expect(await client.resume(), false);
+    expect(await client.isResumable(), false);
   });
 
   test('client_test.TusClient.resume().failure.finger.not.found', () async {
     final client = MockTusClient(url, file, store: TusMemoryStore());
 
-    expect(await client.resume(), false);
+    expect(await client.isResumable(), false);
   });
 
   test('client_test.TusClient.upload()', () async {
@@ -319,7 +319,7 @@ main() {
       headers: anyNamed('headers'),
       body: anyNamed('body'),
     )).thenAnswer((_) async {
-      client.pause();
+      client.pauseUpload();
       return http.Response("", 204, headers: {"upload-offset": "50"});
     });
 

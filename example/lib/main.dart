@@ -103,6 +103,7 @@ class _UploadPageState extends State<UploadPage> {
                               _client = TusClient(
                                 _file!,
                                 store: TusFileStore(tempDirectory),
+                                maxChunkSize: 512 * 1024 * 10,
                               );
 
                               print("Starting upload");
@@ -140,7 +141,7 @@ class _UploadPageState extends State<UploadPage> {
                       onPressed: _progress == 0
                           ? null
                           : () async {
-                              _client!.pause();
+                              _client!.pauseUpload();
                             },
                       child: Text("Pause"),
                     ),

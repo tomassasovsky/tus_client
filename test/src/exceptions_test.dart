@@ -3,7 +3,7 @@ import 'package:tus_client_dart/tus_client_dart.dart';
 
 main() {
   test("exceptions_test.ProtocolException", () {
-    final err = ProtocolException(400, "Expected HEADER 'Tus-Resumable'");
+    final err = ProtocolException("Expected HEADER 'Tus-Resumable'");
     expect(
         "$err",
         "ProtocolException: "
@@ -11,7 +11,7 @@ main() {
   });
 
   test("exceptions_test.ProtocolException.response.shouldRetry", () {
-    final err = ProtocolException(400, "Expected HEADER 'Tus-Resumable'");
+    final err = ProtocolException("Expected HEADER 'Tus-Resumable'");
     expect(
         "$err",
         "ProtocolException: "
@@ -19,7 +19,7 @@ main() {
   });
 
   test("exceptions_test.ProtocolException.response.shouldNotRetry", () {
-    final err = ProtocolException(400, "Expected HEADER 'Tus-Resumable'");
+    final err = ProtocolException("Expected HEADER 'Tus-Resumable'");
     expect(
         "$err",
         "ProtocolException: "
