@@ -100,13 +100,20 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  html_character_entities:
+    dependency: transitive
+    description:
+      name: html_character_entities
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0+1"
   http:
     dependency: transitive
     description:
       name: http
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.4"
+    version: "0.13.5"
   http_parser:
     dependency: transitive
     description:
@@ -219,6 +226,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.2.4"
+  recursive_regex:
+    dependency: transitive
+    description:
+      name: recursive_regex
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -231,6 +245,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.2"
+  speed_test_dart:
+    dependency: transitive
+    description:
+      name: speed_test_dart
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.2"
   stack_trace:
     dependency: transitive
     description:
@@ -252,6 +273,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
+  sync:
+    dependency: transitive
+    description:
+      name: sync
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0"
   term_glyph:
     dependency: transitive
     description:
@@ -272,7 +300,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "2.2.1+2"
+    version: "2.2.3"
   typed_data:
     dependency: transitive
     description:
@@ -343,6 +371,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.0+1"
+  xml_parser:
+    dependency: transitive
+    description:
+      name: xml_parser
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
 sdks:
   dart: ">=2.17.0 <3.0.0"
   flutter: ">=2.8.1"
