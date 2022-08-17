@@ -108,6 +108,10 @@ class _UploadPageState extends State<UploadPage> {
 
                               print("Starting upload");
                               await _client!.upload(
+                                onStart:
+                                    (TusClient client, Duration? estimation) {
+                                  print(estimation);
+                                },
                                 onComplete: () async {
                                   print("Completed!");
                                   tempDirectory.deleteSync(recursive: true);
@@ -115,6 +119,7 @@ class _UploadPageState extends State<UploadPage> {
                                 },
                                 onProgress: (progress, estimate) {
                                   print("Progress: $progress");
+                                  print('Estimate: $estimate');
                                   setState(() {
                                     _progress = progress;
                                     _estimate = estimate;
@@ -130,6 +135,7 @@ class _UploadPageState extends State<UploadPage> {
                                   'testHeaders': 'testHeaders',
                                   'testHeaders2': 'testHeaders2',
                                 },
+                                measureUploadSpeed: true,
                               );
                             },
                       child: Text("Upload"),

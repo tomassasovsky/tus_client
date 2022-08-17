@@ -1,3 +1,7 @@
+## [2.3.0] - Added measure real time upload speed
+
+- Added Upload Speed measure optional parameter
+
 ## [2.2.3] - Added onStart function and using TusFileStore
 
 - Added better cancel upload method.
