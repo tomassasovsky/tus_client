@@ -101,6 +101,13 @@ class TusClient extends TusClientBase {
   Future<void> uploadSpeedTest() async {
     final tester = SpeedTestDart();
 
+    // If bestServers are null or they are empty, we will not measure upload speed
+    // as it wouldn't be accurate at all
+    if (bestServers == null || (bestServers?.isEmpty ?? true)) {
+      uploadSpeed = null;
+      return;
+    }
+
     try {
       uploadSpeed = await tester.testUploadSpeed(servers: bestServers ?? []);
     } catch (_) {
@@ -181,12 +188,11 @@ class TusClient extends TusClientBase {
               final totalSent = _offset + maxChunkSize;
               double _workedUploadSpeed = 1.0;
 
-              if (uploadSpeed != null &&
-                  bestServers != null &&
-                  bestServers!.isNotEmpty) {
+              // If upload speed != null, it means it has been measured
+              if (uploadSpeed != null) {
                 // Multiplied by 10^6 to convert from Mb/s to b/s
                 _workedUploadSpeed = uploadSpeed! * 1000000;
-              } else if (uploadSpeed == null) {
+              } else {
                 _workedUploadSpeed =
                     totalSent / uploadStopwatch.elapsedMilliseconds;
               }
