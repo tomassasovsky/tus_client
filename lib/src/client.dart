@@ -14,6 +14,9 @@ class TusClient extends TusClientBase {
     super.file, {
     super.store,
     super.maxChunkSize = 512 * 1024,
+    super.retries = 0,
+    super.retryScale = RetryScale.constant,
+    super.retryInterval = 0,
   }) {
     _fingerprint = generateFingerprint() ?? "";
   }
@@ -128,21 +131,21 @@ class TusClient extends TusClientBase {
   }) async {
     setUploadData(uri, headers, metadata);
 
-    final isResumamble = await isResumable();
+    final _isResumable = await isResumable();
 
     if (measureUploadSpeed) {
       await setUploadTestServers();
       await uploadSpeedTest();
     }
 
-    if (!isResumamble) {
+    if (!_isResumable) {
       await createUpload();
     }
 
     // get offset from server
     _offset = await _getOffset();
 
-    // Save the filesize as an int in a variable to avoid having to call
+    // Save the file size as an int in a variable to avoid having to call
     int totalBytes = _fileSize as int;
 
     // We start a stopwatch to calculate the upload speed
@@ -214,7 +217,7 @@ class TusClient extends TusClientBase {
         // check if correctly uploaded
         if (!(_response!.statusCode >= 200 && _response!.statusCode < 300)) {
           throw ProtocolException(
-            "Error while uploadingfile",
+            "Error while uploading file",
             _response!.statusCode,
           );
         }
