@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
-import 'dart:math' show min;
+import 'dart:math' show min, pow;
 import 'dart:typed_data' show Uint8List, BytesBuilder;
 import 'package:speed_test_dart/speed_test_dart.dart';
 import 'package:tus_client_dart/src/tus_client_base.dart';
@@ -23,6 +24,8 @@ class TusClient extends TusClientBase {
 
   /// Override this method to use a custom Client
   http.Client getHttpClient() => http.Client();
+
+  int _actualRetry = 0;
 
   /// Create a new [upload] throwing [ProtocolException] on server error
   Future<void> createUpload() async {
@@ -177,6 +180,27 @@ class TusClient extends TusClientBase {
           "Upload-Offset": "$_offset",
           "Content-Type": "application/offset+octet-stream"
         });
+
+      await _performUpload(
+        onComplete: onComplete,
+        onProgress: onProgress,
+        uploadHeaders: uploadHeaders,
+        client: client,
+        uploadStopwatch: uploadStopwatch,
+        totalBytes: totalBytes,
+      );
+    }
+  }
+
+  Future<void> _performUpload({
+    Function(double, Duration)? onProgress,
+    Function()? onComplete,
+    required Map<String, String> uploadHeaders,
+    required http.Client client,
+    required Stopwatch uploadStopwatch,
+    required int totalBytes,
+  }) async {
+    try {
       final request = http.Request("PATCH", _uploadUrl as Uri)
         ..headers.addAll(uploadHeaders)
         ..bodyBytes = await _getData();
@@ -184,7 +208,9 @@ class TusClient extends TusClientBase {
 
       if (_response != null) {
         _response?.stream.listen(
-          (newBytes) {},
+          (newBytes) {
+            if (_actualRetry != 0) _actualRetry = 0;
+          },
           onDone: () {
             if (onProgress != null && !_pauseUpload) {
               // Total byte sent
@@ -210,6 +236,7 @@ class TusClient extends TusClientBase {
 
               final progress = totalSent / totalBytes * 100;
               onProgress((progress).clamp(0, 100), estimate);
+              _actualRetry = 0;
             }
           },
         );
@@ -241,6 +268,23 @@ class TusClient extends TusClientBase {
       } else {
         throw ProtocolException("Error getting Response from server");
       }
+    } catch (e) {
+      if (_actualRetry >= retries) rethrow;
+      final waitInterval = retryScale.getInterval(
+        _actualRetry,
+        retryInterval,
+      );
+      _actualRetry += 1;
+      log('Failed to upload,try: $_actualRetry, interval: $waitInterval');
+      await Future.delayed(waitInterval);
+      return await _performUpload(
+        onComplete: onComplete,
+        onProgress: onProgress,
+        uploadHeaders: uploadHeaders,
+        client: client,
+        uploadStopwatch: uploadStopwatch,
+        totalBytes: totalBytes,
+      );
     }
   }
 
@@ -371,4 +415,32 @@ class TusClient extends TusClientBase {
 
   /// The 'Upload-Metadata' header sent to server
   String get uploadMetadata => _uploadMetadata ?? "";
+}
+
+enum RetryScale {
+  /// Same time interval between every retry.
+  constant,
+
+  /// If interval is n, on every retry the the interval is increased by n.
+  /// For example if [retryInterval] is set to 2 seconds, and the [retries] is set to 4,
+  /// the interval for every retry is going to be [2, 4, 6, 8]
+  lineal,
+
+  /// If interval is n, on every retry the last interval is going to be duplicated.
+  /// For example if [retryInterval] is set to 2 seconds, and the [retries] is set to 4,
+  /// the interval for every retry is going to be [2, 4, 8, 16]
+  exponential;
+
+  Duration getInterval(int retry, int retryInterval) {
+    if (retryInterval == 0) return Duration.zero;
+    if (retry == 0) return Duration(seconds: retryInterval);
+    switch (this) {
+      case RetryScale.constant:
+        return Duration(seconds: retryInterval);
+      case RetryScale.lineal:
+        return Duration(seconds: (retry + 1) * retryInterval);
+      case RetryScale.exponential:
+        return Duration(seconds: retryInterval * pow(2, retry).toInt());
+    }
+  }
 }
