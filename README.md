@@ -144,6 +144,22 @@ await client.upload(
 );
 ```
 
+### Set up the retry mechanism
+
+It is posible to set up how many times the upload can fail before throw an error to increase robustness of the upload.
+Just indicate how many retries to set up the number of attempts before fail, the retryInterval (in seconds) to indicate the time between every retry
+and the retryScale (constant by default) to indicate how this time should increase or not between every retry.
+
+``` dart
+final client = TusClient(
+    Uri.parse("https://master.tus.io/files/"),
+    file
+    retries: 5,
+    retryInterval: 2,
+    retryScale: RetryScale.exponential,
+);
+```
+
 ## Example
 
 For an example of usage in a Flutter app (using file picker) see: [/example](https://github.com/tomassasovsky/tus_client/tree/master/example/lib/main.dart)
