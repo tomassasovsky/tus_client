@@ -27,6 +27,9 @@ abstract class TusClientBase {
     this.file, {
     this.store,
     this.maxChunkSize = 512 * 1024,
+    this.retries = 0,
+    this.retryScale = RetryScale.constant,
+    this.retryInterval = 0,
   });
 
   /// Create a new upload URL
@@ -89,6 +92,15 @@ abstract class TusClientBase {
 
   /// The maximum payload size in bytes when uploading the file in chunks (512KB)
   final int maxChunkSize;
+
+  /// The number of times that should retry to resume the upload if a failure occurs after rethrow the error.
+  final int retries;
+
+  /// The interval between the first error and the first retry in [seconds].
+  final int retryInterval;
+
+  /// The scale type used to increase the interval of time between every retry.
+  final RetryScale retryScale;
 
   /// Whether the client supports resuming
   bool get resumingEnabled => store != null;

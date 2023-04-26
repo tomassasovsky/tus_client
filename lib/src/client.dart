@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
-import 'dart:math' show min;
+import 'dart:math' show min, pow;
 import 'dart:typed_data' show Uint8List, BytesBuilder;
 import 'package:speed_test_dart/speed_test_dart.dart';
+import 'package:tus_client_dart/src/retry_scale.dart';
 import 'package:tus_client_dart/src/tus_client_base.dart';
 
 import 'exceptions.dart';
@@ -14,12 +16,17 @@ class TusClient extends TusClientBase {
     super.file, {
     super.store,
     super.maxChunkSize = 512 * 1024,
+    super.retries = 0,
+    super.retryScale = RetryScale.constant,
+    super.retryInterval = 0,
   }) {
     _fingerprint = generateFingerprint() ?? "";
   }
 
   /// Override this method to use a custom Client
   http.Client getHttpClient() => http.Client();
+
+  int _actualRetry = 0;
 
   /// Create a new [upload] throwing [ProtocolException] on server error
   Future<void> createUpload() async {
@@ -128,21 +135,21 @@ class TusClient extends TusClientBase {
   }) async {
     setUploadData(uri, headers, metadata);
 
-    final isResumamble = await isResumable();
+    final _isResumable = await isResumable();
 
     if (measureUploadSpeed) {
       await setUploadTestServers();
       await uploadSpeedTest();
     }
 
-    if (!isResumamble) {
+    if (!_isResumable) {
       await createUpload();
     }
 
     // get offset from server
     _offset = await _getOffset();
 
-    // Save the filesize as an int in a variable to avoid having to call
+    // Save the file size as an int in a variable to avoid having to call
     int totalBytes = _fileSize as int;
 
     // We start a stopwatch to calculate the upload speed
@@ -174,6 +181,27 @@ class TusClient extends TusClientBase {
           "Upload-Offset": "$_offset",
           "Content-Type": "application/offset+octet-stream"
         });
+
+      await _performUpload(
+        onComplete: onComplete,
+        onProgress: onProgress,
+        uploadHeaders: uploadHeaders,
+        client: client,
+        uploadStopwatch: uploadStopwatch,
+        totalBytes: totalBytes,
+      );
+    }
+  }
+
+  Future<void> _performUpload({
+    Function(double, Duration)? onProgress,
+    Function()? onComplete,
+    required Map<String, String> uploadHeaders,
+    required http.Client client,
+    required Stopwatch uploadStopwatch,
+    required int totalBytes,
+  }) async {
+    try {
       final request = http.Request("PATCH", _uploadUrl as Uri)
         ..headers.addAll(uploadHeaders)
         ..bodyBytes = await _getData();
@@ -181,7 +209,9 @@ class TusClient extends TusClientBase {
 
       if (_response != null) {
         _response?.stream.listen(
-          (newBytes) {},
+          (newBytes) {
+            if (_actualRetry != 0) _actualRetry = 0;
+          },
           onDone: () {
             if (onProgress != null && !_pauseUpload) {
               // Total byte sent
@@ -207,6 +237,7 @@ class TusClient extends TusClientBase {
 
               final progress = totalSent / totalBytes * 100;
               onProgress((progress).clamp(0, 100), estimate);
+              _actualRetry = 0;
             }
           },
         );
@@ -214,7 +245,7 @@ class TusClient extends TusClientBase {
         // check if correctly uploaded
         if (!(_response!.statusCode >= 200 && _response!.statusCode < 300)) {
           throw ProtocolException(
-            "Error while uploadingfile",
+            "Error while uploading file",
             _response!.statusCode,
           );
         }
@@ -238,6 +269,23 @@ class TusClient extends TusClientBase {
       } else {
         throw ProtocolException("Error getting Response from server");
       }
+    } catch (e) {
+      if (_actualRetry >= retries) rethrow;
+      final waitInterval = retryScale.getInterval(
+        _actualRetry,
+        retryInterval,
+      );
+      _actualRetry += 1;
+      log('Failed to upload,try: $_actualRetry, interval: $waitInterval');
+      await Future.delayed(waitInterval);
+      return await _performUpload(
+        onComplete: onComplete,
+        onProgress: onProgress,
+        uploadHeaders: uploadHeaders,
+        client: client,
+        uploadStopwatch: uploadStopwatch,
+        totalBytes: totalBytes,
+      );
     }
   }
 
