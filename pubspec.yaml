@@ -9,7 +9,6 @@ environment:
 dependencies:
   cross_file: ^0.3.3+1
   http: ^1.0.0
-  speed_test_dart: ^1.0.2
 
 dev_dependencies:
   mockito: ^5.2.0
