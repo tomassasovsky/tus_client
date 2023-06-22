@@ -1,3 +1,7 @@
+## [2.5.0] - Update http 1.0.0
+
+- Update to http 1.0.0
+
 ## [2.3.0] - Added measure real time upload speed
 
 - Added Upload Speed measure optional parameter
