@@ -1,4 +1,4 @@
-import 'package:universal_io/io.dart';
+import 'dart:io';
 
 /// Implementations of this interface are used to lookup a
 /// [fingerprint] with the corresponding [file].
