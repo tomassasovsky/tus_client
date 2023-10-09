@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 import 'dart:math' show min;
 import 'dart:typed_data' show Uint8List, BytesBuilder;
+import 'package:universal_io/io.dart';
 import 'package:speed_test_dart/speed_test_dart.dart';
 import 'package:tus_client_dart/src/retry_scale.dart';
 import 'package:tus_client_dart/src/tus_client_base.dart';
