@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:universal_io/io.dart';
 import 'package:cross_file/cross_file.dart' show XFile;
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;

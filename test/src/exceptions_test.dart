@@ -7,7 +7,7 @@ main() {
     expect(
         "$err",
         "ProtocolException: "
-            "Expected HEADER 'Tus-Resumable'");
+            "(null) Expected HEADER 'Tus-Resumable'");
   });
 
   test("exceptions_test.ProtocolException.response.shouldRetry", () {
@@ -15,7 +15,7 @@ main() {
     expect(
         "$err",
         "ProtocolException: "
-            "Expected HEADER 'Tus-Resumable'");
+            "(null) Expected HEADER 'Tus-Resumable'");
   });
 
   test("exceptions_test.ProtocolException.response.shouldNotRetry", () {
@@ -23,6 +23,6 @@ main() {
     expect(
         "$err",
         "ProtocolException: "
-            "Expected HEADER 'Tus-Resumable'");
+            "(null) Expected HEADER 'Tus-Resumable'");
   });
 }
