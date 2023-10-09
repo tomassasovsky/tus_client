@@ -173,9 +173,9 @@ class TusClient extends TusClientBase {
     }
 
     while (!_pauseUpload && _offset < totalBytes) {
-      if (!File(file.path).existsSync()) {
-        throw Exception("Cannot find file ${file.path.split('/').last}");
-      }
+      // if (!File(file.path).existsSync()) {
+      //   throw Exception("Cannot find file ${file.path.split('/').last}");
+      // }
       final uploadHeaders = Map<String, String>.from(headers ?? {})
         ..addAll({
           "Tus-Resumable": tusVersion,
