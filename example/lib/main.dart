@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:cross_file/cross_file.dart' show XFile;
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:tus_client_dart/tus_client_dart.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -60,8 +62,11 @@ class _UploadPageState extends State<UploadPage> {
                 color: Colors.teal,
                 child: InkWell(
                   onTap: () async {
-                    _file =
-                        await _getXFile(await FilePicker.platform.pickFiles());
+                    if (!await ensurePermissions()) {
+                      return;
+                    }
+
+                    _file = await _getXFile();
                     setState(() {
                       _progress = 0;
                       _fileUrl = null;
@@ -224,7 +229,13 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   /// Copy file to temporary directory before uploading
-  Future<XFile> _getXFile(FilePickerResult? result) async {
+  Future<XFile?> _getXFile() async {
+    if (!await ensurePermissions()) {
+      return null;
+    }
+
+    final result = await FilePicker.platform.pickFiles();
+
     if (result != null) {
       final chosenFile = result.files.first;
       if (chosenFile.path != null) {
@@ -238,6 +249,29 @@ class _UploadPageState extends State<UploadPage> {
         );
       }
     }
-    return XFile('');
+
+    return null;
   }
+
+  Future<bool> ensurePermissions() async {
+    var enableStorage = true;
+
+    if (Platform.isAndroid) {
+      final devicePlugin = DeviceInfoPlugin();
+      final androidDeviceInfo = await devicePlugin.androidInfo;
+      _androidSdkVersion = androidDeviceInfo.version.sdkInt;
+      enableStorage = _androidSdkVersion < 33;
+    }
+
+    final storage = enableStorage
+        ? await Permission.storage.status
+        : PermissionStatus.granted;
+    final photos = Platform.isIOS
+        ? await Permission.photos.status
+        : PermissionStatus.granted;
+
+    return storage.isGranted && photos.isGranted;
+  }
+
+  int _androidSdkVersion = 0;
 }

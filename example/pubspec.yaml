@@ -13,10 +13,12 @@ dependencies:
     sdk: flutter
   tus_client_dart:
     path: ../
-  cross_file: ^0.3.3
-  file_picker: ^4.0.0
-  url_launcher: ^6.0.9
-  path_provider: ^2.0.9
+  cross_file: ^0.3.4
+  file_picker: ^8.0.7
+  url_launcher: ^6.3.0
+  path_provider: ^2.1.4
+  permission_handler: ^11.3.1
+  device_info_plus: ^10.1.1
 
 dev_dependencies:
   flutter_test:
