@@ -228,7 +228,7 @@ main() {
     bool success = false;
     double? progress;
     await client.upload(
-      onComplete: () => success = true,
+      onComplete: (_) => success = true,
       onProgress: (
         p,
         e,
@@ -276,7 +276,7 @@ main() {
     bool success = false;
     double? progress;
     await client.upload(
-      onComplete: () => success = true,
+      onComplete: (_) => success = true,
       onProgress: (
         p,
         e,
@@ -326,7 +326,7 @@ main() {
     bool success = false;
     double? progress;
     await client.upload(
-      onComplete: () => success = true,
+      onComplete: (_) => success = true,
       onProgress: (
         p,
         e,
@@ -359,7 +359,7 @@ main() {
     bool success = false;
     double? progress;
     await client.upload(
-      onComplete: () => success = true,
+      onComplete: (_) => success = true,
       onProgress: (
         p,
         e,

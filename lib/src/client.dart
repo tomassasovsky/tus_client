@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:math' show min;
 import 'dart:typed_data' show Uint8List, BytesBuilder;
-import 'package:speed_test_dart/speed_test_dart.dart';
 import 'package:tus_client_dart/src/retry_scale.dart';
 import 'package:tus_client_dart/src/tus_client_base.dart';
 
@@ -90,57 +89,19 @@ class TusClient extends TusClientBase {
     }
   }
 
-  Future<void> setUploadTestServers() async {
-    final tester = SpeedTestDart();
-
-    try {
-      final settings = await tester.getSettings();
-      final servers = settings.servers;
-
-      bestServers = await tester.getBestServers(
-        servers: servers,
-      );
-    } catch (_) {
-      bestServers = null;
-    }
-  }
-
-  Future<void> uploadSpeedTest() async {
-    final tester = SpeedTestDart();
-
-    // If bestServers are null or they are empty, we will not measure upload speed
-    // as it wouldn't be accurate at all
-    if (bestServers == null || (bestServers?.isEmpty ?? true)) {
-      uploadSpeed = null;
-      return;
-    }
-
-    try {
-      uploadSpeed = await tester.testUploadSpeed(servers: bestServers ?? []);
-    } catch (_) {
-      uploadSpeed = null;
-    }
-  }
-
   /// Start or resume an upload in chunks of [maxChunkSize] throwing
   /// [ProtocolException] on server error
   Future<void> upload({
     Function(double, Duration)? onProgress,
     Function(TusClient, Duration?)? onStart,
-    Function()? onComplete,
+    Function(http.StreamedResponse?)? onComplete,
     required Uri uri,
     Map<String, String>? metadata = const {},
     Map<String, String>? headers = const {},
-    bool measureUploadSpeed = false,
   }) async {
     setUploadData(uri, headers, metadata);
 
     final _isResumable = await isResumable();
-
-    if (measureUploadSpeed) {
-      await setUploadTestServers();
-      await uploadSpeedTest();
-    }
 
     if (!_isResumable) {
       await createUpload();
@@ -159,22 +120,11 @@ class TusClient extends TusClientBase {
     final client = getHttpClient();
 
     if (onStart != null) {
-      Duration? estimate;
-      if (uploadSpeed != null) {
-        final _workedUploadSpeed = uploadSpeed! * 1000000;
-
-        estimate = Duration(
-          seconds: (totalBytes / _workedUploadSpeed).round(),
-        );
-      }
       // The time remaining to finish the upload
-      onStart(this, estimate);
+      onStart(this, null);
     }
 
     while (!_pauseUpload && _offset < totalBytes) {
-      if (!File(file.path).existsSync()) {
-        throw Exception("Cannot find file ${file.path.split('/').last}");
-      }
       final uploadHeaders = Map<String, String>.from(headers ?? {})
         ..addAll({
           "Tus-Resumable": tusVersion,
@@ -195,7 +145,7 @@ class TusClient extends TusClientBase {
 
   Future<void> _performUpload({
     Function(double, Duration)? onProgress,
-    Function()? onComplete,
+    Function(http.StreamedResponse?)? onComplete,
     required Map<String, String> uploadHeaders,
     required http.Client client,
     required Stopwatch uploadStopwatch,
@@ -218,14 +168,8 @@ class TusClient extends TusClientBase {
               final totalSent = _offset + maxChunkSize;
               double _workedUploadSpeed = 1.0;
 
-              // If upload speed != null, it means it has been measured
-              if (uploadSpeed != null) {
-                // Multiplied by 10^6 to convert from Mb/s to b/s
-                _workedUploadSpeed = uploadSpeed! * 1000000;
-              } else {
-                _workedUploadSpeed =
-                    totalSent / uploadStopwatch.elapsedMilliseconds;
-              }
+              _workedUploadSpeed =
+                  totalSent / uploadStopwatch.elapsedMilliseconds;
 
               // The data that hasn't been sent yet
               final remainData = totalBytes - totalSent;
@@ -263,7 +207,7 @@ class TusClient extends TusClientBase {
         if (_offset == totalBytes && !_pauseUpload) {
           this.onCompleteUpload();
           if (onComplete != null) {
-            onComplete();
+            onComplete(_response);
           }
         }
       } else {

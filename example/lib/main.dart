@@ -117,8 +117,10 @@ class _UploadPageState extends State<UploadPage> {
                                     (TusClient client, Duration? estimation) {
                                   print(estimation);
                                 },
-                                onComplete: () async {
+                                onComplete: (lastResponse) async {
                                   print("Completed!");
+                                  print(
+                                      "Server-side headers: ${lastResponse?.headers}");
                                   tempDirectory.deleteSync(recursive: true);
                                   setState(() => _fileUrl = _client!.uploadUrl);
                                 },
